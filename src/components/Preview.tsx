@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type Field = {
   id: number;
@@ -42,31 +42,11 @@ export default function Preview({
   footerIcon,
   showTimestamp,
 }: PreviewProps) {
-  const [botAvatarError, setBotAvatarError] = useState(false);
-  const [authorIconError, setAuthorIconError] = useState(false);
-  const [thumbnailError, setThumbnailError] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const [footerIconError, setFooterIconError] = useState(false);
-
-  useEffect(() => {
-    setBotAvatarError(false);
-  }, [botAvatar]);
-
-  useEffect(() => {
-    setAuthorIconError(false);
-  }, [authorIcon]);
-
-  useEffect(() => {
-    setThumbnailError(false);
-  }, [thumbnail]);
-
-  useEffect(() => {
-    setImageError(false);
-  }, [image]);
-
-  useEffect(() => {
-    setFooterIconError(false);
-  }, [footerIcon]);
+  const [botAvatarError, setBotAvatarError] = useState<string | null>(null);
+  const [authorIconError, setAuthorIconError] = useState<string | null>(null);
+  const [thumbnailError, setThumbnailError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [footerIconError, setFooterIconError] = useState<string | null>(null);
 
   const currentTime = new Date().toLocaleTimeString([], {
     hour: "2-digit",
@@ -120,6 +100,12 @@ export default function Preview({
     });
   };
 
+  const botAvatarHasError = botAvatarError === botAvatar;
+  const authorIconHasError = authorIconError === authorIcon;
+  const thumbnailHasError = thumbnailError === thumbnail;
+  const imageHasError = imageError === image;
+  const footerIconHasError = footerIconError === footerIcon;
+
   return (
     <div className="h-full overflow-y-auto rounded-xl bg-[#313338] p-5">
       <div className="mb-4">
@@ -129,12 +115,12 @@ export default function Preview({
       </div>
 
       <div className="flex gap-3">
-        {botAvatar && !botAvatarError ? (
+        {botAvatar && !botAvatarHasError ? (
           <img
             src={botAvatar}
             alt="Bot Avatar"
             className="h-10 w-10 shrink-0 rounded-full object-cover"
-            onError={() => setBotAvatarError(true)}
+            onError={() => setBotAvatarError(botAvatar)}
           />
         ) : (
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#5865F2] text-xl">
@@ -172,12 +158,12 @@ export default function Preview({
             <div className="p-4">
               {author && (
                 <div className="mb-2 flex items-center gap-2">
-                  {authorIcon && !authorIconError && (
+                  {authorIcon && !authorIconHasError && (
                     <img
                       src={authorIcon}
                       alt="Author Icon"
                       className="h-6 w-6 rounded-full object-cover"
-                      onError={() => setAuthorIconError(true)}
+                      onError={() => setAuthorIconError(authorIcon)}
                     />
                   )}
 
@@ -202,12 +188,12 @@ export default function Preview({
                   )}
                 </div>
 
-                {thumbnail && !thumbnailError && (
+                {thumbnail && !thumbnailHasError && (
                   <img
                     src={thumbnail}
                     alt="Thumbnail"
                     className="h-20 w-20 shrink-0 rounded-md object-cover"
-                    onError={() => setThumbnailError(true)}
+                    onError={() => setThumbnailError(thumbnail)}
                   />
                 )}
               </div>
@@ -245,23 +231,23 @@ export default function Preview({
                 </div>
               )}
 
-              {image && !imageError && (
+              {image && !imageHasError && (
                 <img
                   src={image}
                   alt="Embed Image"
                   className="mt-4 max-h-80 w-full rounded-md object-cover"
-                  onError={() => setImageError(true)}
+                  onError={() => setImageError(image)}
                 />
               )}
 
               {(footerText || showTimestamp) && (
                 <div className="mt-4 flex items-center gap-2">
-                  {footerIcon && !footerIconError && (
+                  {footerIcon && !footerIconHasError && (
                     <img
                       src={footerIcon}
                       alt="Footer Icon"
                       className="h-5 w-5 rounded-full object-cover"
-                      onError={() => setFooterIconError(true)}
+                      onError={() => setFooterIconError(footerIcon)}
                     />
                   )}
 
