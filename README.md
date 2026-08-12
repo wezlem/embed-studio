@@ -19,7 +19,7 @@
 
 ## Türkçe
 
-### Ne yapıyor
+### Ne Yapıyor
 
 - Embed'leri görsel bir editör üzerinden oluşturmanı sağlıyor
 - Yaptığın değişiklikleri gerçek zamanlı olarak Discord görünümünde gösteriyor
@@ -32,7 +32,7 @@
 - Webhook kullanıcı adı ve avatarını özelleştirebiliyorsun
 - Normal Discord mesaj içeriğini embed ile birlikte kullanabiliyorsun
 
-### Kullanılan teknolojiler
+### Kullanılan Teknolojiler
 
 | Teknoloji | Ne için |
 |---|---|
@@ -40,28 +40,28 @@
 | TypeScript | Tip güvenliği ve uygulama geliştirme |
 | Vite | Geliştirme sunucusu ve build |
 | Tailwind CSS | Arayüz tasarımı |
-| Node.js | Sunucu tarafı işlemleri |
+| Node.js | Sunucu tarafı işlemler |
 | Express | Webhook sunucusu |
 | CORS | İstek izinleri |
 | tsx | TypeScript sunucusunu çalıştırmak |
 
-### Proje yapısı
+### Proje Yapısı
 
-```
+```text
 embed-studio/
 │
 ├── public/
-│   └── ...                 # Statik dosyalar
+│   └── ...                  # Statik dosyalar
 │
 ├── server/
-│   └── index.ts            # Webhook sunucusu
+│   └── index.ts             # Webhook sunucusu
 │
 ├── src/
 │   ├── components/
-│   │   ├── Editor.tsx      # Embed düzenleme alanı
-│   │   └── Preview.tsx     # Discord embed önizlemesi
+│   │   ├── Editor.tsx       # Embed düzenleme alanı
+│   │   └── Preview.tsx      # Discord embed önizlemesi
 │   │
-│   ├── App.tsx             # Uygulamanın ana yapısı
+│   ├── App.tsx              # Uygulamanın ana yapısı
 │   └── ...
 │
 ├── .gitignore
@@ -77,41 +77,45 @@ embed-studio/
 
 ### Kurulum
 
-```
+```bash
 git clone https://github.com/wezlem/embed-studio.git
 cd embed-studio
 npm install
 ```
 
 Frontend'i başlatmak için:
-```
+
+```bash
 npm run dev
 ```
 
 Webhook sunucusunu başlatmak için:
-```
+
+```bash
 npm run server
 ```
 
-Production Build kurmak için:
-```
+Production build oluşturmak için:
+
+```bash
 npm run build
 ```
 
 ### Komutlar
 
-```npm run dev```      → Vite geliştirme sunucusunu başlatır
+`npm run dev` → Vite geliştirme sunucusunu başlatır
 
-```npm run server```   → Webhook sunucusunu başlatır
+`npm run server` → Webhook sunucusunu başlatır
 
-```npm run build```    → Production build oluşturur
+`npm run build` → Production build oluşturur
 
-```npm run lint```     → ESLint kontrolü yapar
+`npm run lint` → ESLint kontrolü yapar
 
-```npm run preview```  → Build'i önizler
+`npm run preview` → Build'i önizler
 
 ### Durum
-```
+
+```text
 STATUS
 ├── Frontend      ✓
 ├── Editor        ✓
@@ -124,7 +128,7 @@ STATUS
 
 ## English
 
-### What is does
+### What It Does
 
 - Allows you to create Discord embeds through a visual editor
 - Shows your changes in a real-time Discord-style preview
@@ -151,21 +155,22 @@ STATUS
 | tsx | Running the TypeScript server |
 
 ### Project Structure
-```
+
+```text
 embed-studio/
 │
 ├── public/
-│   └── ...                 # Static files
+│   └── ...                  # Static files
 │
 ├── server/
-│   └── index.ts            # Webhook server
+│   └── index.ts             # Webhook server
 │
 ├── src/
 │   ├── components/
-│   │   ├── Editor.tsx      # Embed editor
-│   │   └── Preview.tsx     # Discord embed preview
+│   │   ├── Editor.tsx       # Embed editor
+│   │   └── Preview.tsx      # Discord embed preview
 │   │
-│   ├── App.tsx             # Main application
+│   ├── App.tsx              # Main application
 │   └── ...
 │
 ├── .gitignore
@@ -174,48 +179,52 @@ embed-studio/
 ├── package.json
 ├── package-lock.json
 ├── tsconfig.app.json
-├── tsconfig.ts
+├── tsconfig.json
 ├── tsconfig.node.json
 └── vite.config.ts
 ```
 
 ### Installation
 
-```
+```bash
 git clone https://github.com/wezlem/embed-studio.git
 cd embed-studio
 npm install
 ```
 
 Start the frontend:
-```
+
+```bash
 npm run dev
 ```
 
 Start the Webhook Server:
-```
+
+```bash
 npm run server
 ```
 
 Create a production build:
-```
+
+```bash
 npm run build
 ```
 
 ### Scripts
 
-```npm run dev```     → Start Vite development server
+`npm run dev` → Start Vite development server
 
-```npm run server```  → Start webhook server
+`npm run server` → Start webhook server
 
-```npm run build```   → Create production build
+`npm run build` → Create production build
 
-```npm run lint```    → Run ESLint
+`npm run lint` → Run ESLint
 
-```npm run preview``` → Preview production build
+`npm run preview` → Preview production build
 
 ### Status
-```
+
+```text
 STATUS
 ├── Frontend      ✓
 ├── Editor        ✓
@@ -226,4 +235,13 @@ STATUS
 └── Development   ── Active
 ```
 
-<p align="center"> ───────────────────────────────────────── </p> <p align="center"> <a href="https://github.com/wezlem/embed-studio">Repository</a> · <a href="https://github.com/wezlem/embed-studio/issues">Issues</a> </p> <p align="center"> <sub>Built by <a href="https://github.com/wezlem">wezlem</a></sub> </p> 
+<p align="center">─────────────────────────────────────────</p>
+
+<p align="center">
+  <a href="https://github.com/wezlem/embed-studio">Repository</a> ·
+  <a href="https://github.com/wezlem/embed-studio/issues">Issues</a>
+</p>
+
+<p align="center">
+  <sub>Built by <a href="https://github.com/wezlem">wezlem</a></sub>
+</p>
