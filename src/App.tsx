@@ -4,6 +4,7 @@ import Preview from "./components/Preview";
 import TagPanel, { type TagTarget } from "./components/TagPanel";
 import ButtonPanel from "./components/ButtonPanel";
 import { isUsableButton, type LinkButton } from "./components/buttons";
+import logo from "./assets/logo.png";
 
 type Field = {
   id: number;
@@ -527,7 +528,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "http://localhost:3001/api/webhook",
+        "/api/webhook",
         {
           method: "POST",
           headers: {
@@ -592,10 +593,17 @@ function App() {
 
   return (
     <div className="flex h-screen flex-col bg-canvas text-ink">
-      <header className="flex shrink-0 items-center justify-between border-b border-line bg-panel px-6 py-3">
-        <h1 className="text-base font-semibold">
-          Embed Studio
-        </h1>
+                  <header className="flex shrink-0 items-center justify-between border-b border-line bg-panel px-6 py-3">
+        <div className="flex items-center gap-2.5">
+          <img
+            src={logo}
+            alt="Logo"
+            className="h-14 w-14 rounded object-contain"
+          />
+          <h1 className="text-base font-semibold">
+            Leosubs Studio
+          </h1>
+        </div>
 
         <div className="flex items-center gap-2">
           <button

@@ -1,11 +1,23 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.resolve(__dirname, "../dist");
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static frontend files if dist folder exists
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
 
 app.post("/api/webhook", async (req, res) => {
   try {
@@ -135,8 +147,20 @@ app.post("/api/webhook", async (req, res) => {
   }
 });
 
+// Fallback for React Router / SPA
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    return next();
+  }
+  const indexPath = path.join(distPath, "index.html");
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  return res.status(404).send("Frontend not built. Run 'npm run build' first.");
+});
+
 app.listen(PORT, () => {
   console.log(
-    `Webhook server running on http://localhost:${PORT}`
+    `Server running on http://localhost:${PORT}`
   );
 });
