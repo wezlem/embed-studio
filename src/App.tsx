@@ -1,6 +1,9 @@
 import { useState } from "react";
 import Editor from "./components/Editor";
 import Preview from "./components/Preview";
+import TagPanel, { type TagTarget } from "./components/TagPanel";
+import ButtonPanel from "./components/ButtonPanel";
+import { isUsableButton, type LinkButton } from "./components/buttons";
 
 type Field = {
   id: number;
@@ -33,7 +36,14 @@ function App() {
   const [webhookUrl, setWebhookUrl] = useState("");
   const [webhookUsername, setWebhookUsername] = useState("");
   const [webhookAvatar, setWebhookAvatar] = useState("");
-  const [webhookStatus, setWebhookStatus] = useState("");
+    const [webhookStatus, setWebhookStatus] = useState<{
+    kind: "info" | "success" | "error";
+    text: string;
+  } | null>(null);
+
+  const [tagNames, setTagNames] = useState<Record<string, string>>({});
+
+  const [buttons, setButtons] = useState<LinkButton[]>([]);
 
   const [copied, setCopied] = useState("");
   const [modal, setModal] = useState<ModalType>(null);
@@ -71,6 +81,66 @@ function App() {
     setFields((currentFields) =>
       currentFields.filter((field) => field.id !== id)
     );
+  };
+
+  const insertTag = (target: TagTarget, tag: string) => {
+    const addTo = (old: string) =>
+      old && !/\s$/.test(old) ? `${old} ${tag}` : `${old}${tag}`;
+
+    if (target === "content") {
+      setContent(addTo);
+    } else {
+      setDescription(addTo);
+    }
+  };
+
+  const setTagName = (tag: string, name: string) => {
+    setTagNames((current) => ({ ...current, [tag]: name }));
+  };
+
+  const addButton = () => {
+    setButtons((current) => [
+      ...current,
+      { id: Date.now(), label: "", url: "" },
+    ]);
+  };
+
+  const updateButton = (
+    id: number,
+    property: "label" | "url",
+    value: string
+  ) => {
+    setButtons((current) =>
+      current.map((button) =>
+        button.id === id ? { ...button, [property]: value } : button
+      )
+    );
+  };
+
+  const removeButton = (id: number) => {
+    setButtons((current) =>
+      current.filter((button) => button.id !== id)
+    );
+  };
+
+  const buildComponents = () => {
+    const usable = buttons.filter(isUsableButton);
+
+    if (usable.length === 0) {
+      return [];
+    }
+
+    return [
+      {
+        type: 1,
+        components: usable.map((button) => ({
+          type: 2,
+          style: 5,
+          label: button.label.trim(),
+          url: button.url.trim(),
+        })),
+      },
+    ];
   };
 
   const buildEmbed = () => {
@@ -150,6 +220,12 @@ function App() {
       payload.content = content;
     }
 
+    const components = buildComponents();
+
+    if (components.length > 0) {
+      payload.components = components;
+    }
+
     return payload;
   };
 
@@ -162,11 +238,14 @@ function App() {
   };
 
   const buildDiscordJS = () => {
-    const embed = buildEmbed();
+        const embed = buildEmbed();
+    const usableButtons = buttons.filter(isUsableButton);
     const lines: string[] = [];
 
     lines.push(
-      "const { EmbedBuilder } = require('discord.js');"
+      usableButtons.length > 0
+        ? "const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');"
+        : "const { EmbedBuilder } = require('discord.js');"
     );
     lines.push("");
 
@@ -323,17 +402,39 @@ function App() {
       lines[lines.length - 1] += ";";
     }
 
-    lines.push("");
+        lines.push("");
 
-    if (content.trim()) {
+    if (usableButtons.length > 0) {
       lines.push(
-        "channel.send({ content, embeds: [embed] });"
+        "const row = new ActionRowBuilder().addComponents("
       );
-    } else {
-      lines.push(
-        "channel.send({ embeds: [embed] });"
-      );
+
+      usableButtons.forEach((button, index) => {
+        lines.push("  new ButtonBuilder()");
+        lines.push(
+          `    .setLabel(${JSON.stringify(button.label.trim())})`
+        );
+        lines.push(
+          `    .setURL(${JSON.stringify(button.url.trim())})`
+        );
+        lines.push(
+          index === usableButtons.length - 1
+            ? "    .setStyle(ButtonStyle.Link)"
+            : "    .setStyle(ButtonStyle.Link),"
+        );
+      });
+
+      lines.push(");");
+      lines.push("");
     }
+
+    const sendParts = [
+      ...(content.trim() ? ["content"] : []),
+      "embeds: [embed]",
+      ...(usableButtons.length > 0 ? ["components: [row]"] : []),
+    ];
+
+    lines.push(`channel.send({ ${sendParts.join(", ")} });`);
 
     return lines.join("\n");
   };
@@ -355,48 +456,48 @@ function App() {
     }
   };
 
-  const validateWebhook = () => {
-    const isValid =
-      /^https:\/\/discord(?:app)?\.com\/api\/webhooks\/\d+\/.+$/i.test(
-        webhookUrl.trim()
-      );
-
-    if (!webhookUrl.trim()) {
-      setWebhookStatus(
-        "⚠️ Webhook URL is empty."
-      );
-      return;
-    }
-
-    if (!isValid) {
-      setWebhookStatus(
-        "❌ Invalid Discord webhook URL."
-      );
-      return;
-    }
-
-    setWebhookStatus(
-      "✓ Webhook URL format looks valid."
+    const isValidWebhookUrl = (url: string) =>
+    /^https:\/\/discord(?:app)?\.com\/api\/webhooks\/\d+\/.+$/i.test(
+      url.trim()
     );
+
+  const validateWebhook = () => {
+    if (!webhookUrl.trim()) {
+      setWebhookStatus({
+        kind: "error",
+        text: "Enter a webhook URL.",
+      });
+      return;
+    }
+
+    if (!isValidWebhookUrl(webhookUrl)) {
+      setWebhookStatus({
+        kind: "error",
+        text: "Invalid Discord webhook URL.",
+      });
+      return;
+    }
+
+    setWebhookStatus({
+      kind: "success",
+      text: "Webhook URL format is valid.",
+    });
   };
 
   const sendWebhook = async () => {
     if (!webhookUrl.trim()) {
-      setWebhookStatus(
-        "⚠️ Please enter a webhook URL."
-      );
+      setWebhookStatus({
+        kind: "error",
+        text: "Enter a webhook URL.",
+      });
       return;
     }
 
-    const isValid =
-      /^https:\/\/discord(?:app)?\.com\/api\/webhooks\/\d+\/.+$/i.test(
-        webhookUrl.trim()
-      );
-
-    if (!isValid) {
-      setWebhookStatus(
-        "❌ Invalid Discord webhook URL."
-      );
+    if (!isValidWebhookUrl(webhookUrl)) {
+      setWebhookStatus({
+        kind: "error",
+        text: "Invalid Discord webhook URL.",
+      });
       return;
     }
 
@@ -412,13 +513,17 @@ function App() {
       !embed.author &&
       !embed.footer
     ) {
-      setWebhookStatus(
-        "⚠️ Please add a message or embed content first."
-      );
+      setWebhookStatus({
+        kind: "error",
+        text: "Add a message or embed content first.",
+      });
       return;
     }
 
-    setWebhookStatus("⏳ Sending...");
+    setWebhookStatus({
+      kind: "info",
+      text: "Sending...",
+    });
 
     try {
       const response = await fetch(
@@ -432,6 +537,7 @@ function App() {
             webhookUrl: webhookUrl.trim(),
             embed,
             content: content.trim(),
+            components: buildComponents(),
             username: webhookUsername.trim(),
             avatarUrl: webhookAvatar.trim(),
           }),
@@ -446,15 +552,17 @@ function App() {
         );
       }
 
-      setWebhookStatus(
-        "✅ Message sent successfully!"
-      );
+      setWebhookStatus({
+        kind: "success",
+        text: "Message sent.",
+      });
     } catch (error) {
       console.error(error);
 
-      setWebhookStatus(
-        "❌ Failed to send message. Is the webhook server running?"
-      );
+      setWebhookStatus({
+        kind: "error",
+        text: "Could not send the message. Check that the webhook server is running.",
+      });
     }
   };
 
@@ -463,65 +571,70 @@ function App() {
       ? buildJSON()
       : buildDiscordJS();
 
-  return (
-    <div className="min-h-screen bg-[#313338] text-white">
-      <header className="flex items-center justify-between border-b border-[#3f4147] px-6 py-4">
-        <div>
-          <h1 className="text-2xl font-bold">
-            🎨 Embed Studio
-          </h1>
+  const modalCopyKey =
+    modal === "json" ? "modal-json" : "modal-code";
 
-          <p className="text-sm text-gray-400">
-            Build beautiful Discord embeds.
-          </p>
-        </div>
+  /* Ortak stiller */
+  const inputClass =
+    "w-full rounded-md border border-line bg-field px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-accent";
+
+  const secondaryButton =
+    "rounded-md border border-line-strong px-3 py-2 text-sm text-subtle transition-colors hover:bg-line hover:text-ink";
+
+  const primaryButton =
+    "rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50";
+
+  const statusColor = {
+    info: "text-subtle",
+    success: "text-green-400",
+    error: "text-danger",
+  };
+
+  return (
+    <div className="flex h-screen flex-col bg-canvas text-ink">
+      <header className="flex shrink-0 items-center justify-between border-b border-line bg-panel px-6 py-3">
+        <h1 className="text-base font-semibold">
+          Embed Studio
+        </h1>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setModal("json")}
-            className="rounded-lg border border-[#4f545c] px-3 py-2 text-sm transition hover:bg-[#3f4147]"
+            className={secondaryButton}
           >
-            👁 JSON
+            View JSON
           </button>
 
           <button
             onClick={() =>
-              copyToClipboard(
-                buildJSON(),
-                "json"
-              )
+              copyToClipboard(buildJSON(), "json")
             }
-            className="rounded-lg border border-[#4f545c] px-3 py-2 text-sm transition hover:bg-[#3f4147]"
+            className={secondaryButton}
           >
-            {copied === "json"
-              ? "✓ Copied"
-              : "📋 Copy JSON"}
+            {copied === "json" ? "Copied" : "Copy JSON"}
           </button>
+
+          <div className="mx-1 h-5 w-px bg-line" />
 
           <button
             onClick={() => setModal("code")}
-            className="rounded-lg border border-[#4f545c] px-3 py-2 text-sm transition hover:bg-[#3f4147]"
+            className={secondaryButton}
           >
-            👁 Code
+            View code
           </button>
 
           <button
             onClick={() =>
-              copyToClipboard(
-                buildDiscordJS(),
-                "code"
-              )
+              copyToClipboard(buildDiscordJS(), "code")
             }
-            className="rounded-lg bg-[#5865F2] px-3 py-2 text-sm font-semibold transition hover:bg-[#4752C4]"
+            className={primaryButton}
           >
-            {copied === "code"
-              ? "✓ Copied"
-              : "</> Copy Code"}
+            {copied === "code" ? "Copied" : "Copy code"}
           </button>
         </div>
       </header>
 
-      <main className="grid min-h-[calc(100vh-81px)] grid-cols-2 gap-4 p-4">
+      <main className="grid min-h-0 flex-1 grid-cols-2 gap-4 p-4">
         <Editor
           content={content}
           title={title}
@@ -548,20 +661,17 @@ function App() {
           onRemoveField={removeField}
           onFooterTextChange={setFooterText}
           onFooterIconChange={setFooterIcon}
-          onShowTimestampChange={
-            setShowTimestamp
-          }
+          onShowTimestampChange={setShowTimestamp}
         />
 
-        <div className="flex h-full flex-col gap-4">
-          <div className="min-h-0 flex-1">
+        <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto">
+          <div className="sticky top-0 z-10 flex max-h-[55vh] min-h-[240px] shrink-0 flex-col bg-canvas pb-4 [&>div]:grow">
             <Preview
               content={content}
-              botName={
-                webhookUsername ||
-                "Embed Studio"
-              }
+              botName={webhookUsername || "Embed Studio"}
               botAvatar={webhookAvatar}
+              tagNames={tagNames}
+              buttons={buttons}
               showBotBadge={true}
               title={title}
               description={description}
@@ -577,28 +687,54 @@ function App() {
             />
           </div>
 
-          <div className="rounded-xl border border-[#3f4147] bg-[#2b2d31] p-5">
-            <div className="mb-4">
-              <h2 className="text-base font-semibold">
-                🚀 Discord Webhook
-              </h2>
+          <section className="shrink-0 rounded-lg border border-line bg-panel p-5">
+            <h2 className="text-sm font-semibold">
+              Tags
+            </h2>
 
-              <p className="mt-1 text-xs text-gray-400">
-                Configure how your message appears when sent to Discord.
-              </p>
-            </div>
+            <p className="mt-1 mb-4 text-xs text-muted">
+              Mention a user, role or channel by ID.
+            </p>
+
+            <TagPanel onInsert={insertTag} onName={setTagName} />
+          </section>
+
+          <section className="shrink-0 rounded-lg border border-line bg-panel p-5">
+            <h2 className="text-sm font-semibold">
+              Buttons
+            </h2>
+
+            <p className="mt-1 mb-4 text-xs text-muted">
+              Add link buttons under the embed.
+            </p>
+
+            <ButtonPanel
+              buttons={buttons}
+              onAdd={addButton}
+              onUpdate={updateButton}
+              onRemove={removeButton}
+            />
+          </section>
+
+          <section className="shrink-0 rounded-lg border border-line bg-panel p-5">
+            <h2 className="text-sm font-semibold">
+              Webhook
+            </h2>
+
+            <p className="mt-1 mb-4 text-xs text-muted">
+              Send this message to a Discord channel.
+            </p>
 
             <input
               type="password"
               value={webhookUrl}
               onChange={(event) => {
-                setWebhookUrl(
-                  event.target.value
-                );
-                setWebhookStatus("");
+                setWebhookUrl(event.target.value);
+                setWebhookStatus(null);
               }}
               placeholder="https://discord.com/api/webhooks/..."
-              className="w-full rounded-lg border border-[#3f4147] bg-[#1e1f22] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#5865F2]"
+              aria-label="Webhook URL"
+              className={inputClass}
             />
 
             <div className="mt-3 grid grid-cols-2 gap-2">
@@ -606,50 +742,50 @@ function App() {
                 type="text"
                 value={webhookUsername}
                 onChange={(event) =>
-                  setWebhookUsername(
-                    event.target.value
-                  )
+                  setWebhookUsername(event.target.value)
                 }
-                placeholder="Webhook Username"
-                className="rounded-lg border border-[#3f4147] bg-[#1e1f22] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#5865F2]"
+                placeholder="Username"
+                aria-label="Webhook username"
+                className={inputClass}
               />
 
               <input
                 type="url"
                 value={webhookAvatar}
                 onChange={(event) =>
-                  setWebhookAvatar(
-                    event.target.value
-                  )
+                  setWebhookAvatar(event.target.value)
                 }
                 placeholder="Avatar URL"
-                className="rounded-lg border border-[#3f4147] bg-[#1e1f22] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#5865F2]"
+                aria-label="Webhook avatar URL"
+                className={inputClass}
               />
             </div>
 
             <div className="mt-3 flex gap-2">
               <button
                 onClick={validateWebhook}
-                className="flex-1 rounded-lg border border-[#4f545c] px-4 py-2.5 text-sm transition hover:bg-[#3f4147]"
+                className={`${secondaryButton} flex-1`}
               >
-                Check Webhook
+                Check webhook
               </button>
 
               <button
                 onClick={sendWebhook}
                 disabled={!webhookUrl.trim()}
-                className="flex-1 rounded-lg bg-[#5865F2] px-4 py-2.5 text-sm font-semibold transition hover:bg-[#4752C4] disabled:cursor-not-allowed disabled:opacity-50"
+                className={`${primaryButton} flex-1`}
               >
-                🚀 Send to Discord
+                Send to Discord
               </button>
             </div>
 
             {webhookStatus && (
-              <p className="mt-3 text-center text-sm text-gray-300">
-                {webhookStatus}
+              <p
+                className={`mt-3 text-sm ${statusColor[webhookStatus.kind]}`}
+              >
+                {webhookStatus.text}
               </p>
             )}
-          </div>
+          </section>
         </div>
       </main>
 
@@ -659,65 +795,44 @@ function App() {
           onClick={() => setModal(null)}
         >
           <div
-            className="w-full max-w-4xl overflow-hidden rounded-xl border border-[#4f545c] bg-[#2b2d31] shadow-2xl"
-            onClick={(event) =>
-              event.stopPropagation()
-            }
+            className="w-full max-w-4xl overflow-hidden rounded-lg border border-line-strong bg-panel shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-[#3f4147] px-5 py-4">
-              <div>
-                <h2 className="font-semibold">
-                  {modal === "json"
-                    ? "📋 JSON Output"
-                    : "</> Discord.js Code"}
-                </h2>
+            <div className="border-b border-line px-5 py-4">
+              <h2 className="text-sm font-semibold">
+                {modal === "json"
+                  ? "JSON"
+                  : "discord.js code"}
+              </h2>
 
-                <p className="mt-1 text-xs text-gray-400">
-                  {modal === "json"
-                    ? "Your generated Discord message payload."
-                    : "Generated code for discord.js."}
-                </p>
-              </div>
-
-              <button
-                onClick={() => setModal(null)}
-                className="rounded-lg px-3 py-2 text-gray-400 transition hover:bg-[#3f4147] hover:text-white"
-              >
-                ✕
-              </button>
+              <p className="mt-1 text-xs text-muted">
+                {modal === "json"
+                  ? "The message payload sent to Discord."
+                  : "Ready-to-use code for discord.js."}
+              </p>
             </div>
 
             <div className="max-h-[65vh] overflow-auto p-5">
-              <pre className="rounded-lg border border-[#3f4147] bg-[#1e1f22] p-5 text-sm leading-6 text-gray-200">
+              <pre className="rounded-md border border-line bg-field p-4 font-mono text-sm leading-6 text-subtle">
                 <code>{modalContent}</code>
               </pre>
             </div>
 
-            <div className="flex justify-end gap-2 border-t border-[#3f4147] px-5 py-4">
+            <div className="flex justify-end gap-2 border-t border-line px-5 py-4">
               <button
                 onClick={() => setModal(null)}
-                className="rounded-lg border border-[#4f545c] px-4 py-2 text-sm transition hover:bg-[#3f4147]"
+                className={secondaryButton}
               >
                 Close
               </button>
 
               <button
                 onClick={() =>
-                  copyToClipboard(
-                    modalContent,
-                    modal === "json"
-                      ? "modal-json"
-                      : "modal-code"
-                  )
+                  copyToClipboard(modalContent, modalCopyKey)
                 }
-                className="rounded-lg bg-[#5865F2] px-4 py-2 text-sm font-semibold transition hover:bg-[#4752C4]"
+                className={primaryButton}
               >
-                {copied ===
-                (modal === "json"
-                  ? "modal-json"
-                  : "modal-code")
-                  ? "✓ Copied!"
-                  : "📋 Copy"}
+                {copied === modalCopyKey ? "Copied" : "Copy"}
               </button>
             </div>
           </div>

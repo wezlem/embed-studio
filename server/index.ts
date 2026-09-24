@@ -13,6 +13,7 @@ app.post("/api/webhook", async (req, res) => {
       webhookUrl,
       embed,
       content,
+      components,
       username,
       avatarUrl,
     } = req.body;
@@ -39,6 +40,7 @@ app.post("/api/webhook", async (req, res) => {
     const payload: {
       content?: string;
       embeds?: unknown[];
+      components?: unknown[];
       username?: string;
       avatar_url?: string;
       allowed_mentions?: {
@@ -56,6 +58,14 @@ app.post("/api/webhook", async (req, res) => {
       payload.embeds = [embed];
     }
 
+    // Link buttons
+    const hasButtons =
+      Array.isArray(components) && components.length > 0;
+
+    if (hasButtons) {
+      payload.components = components;
+    }
+
     // Webhook username
     if (username?.trim()) {
       payload.username = username.trim();
@@ -71,7 +81,14 @@ app.post("/api/webhook", async (req, res) => {
       parse: ["everyone", "users", "roles"],
     };
 
-    const response = await fetch(webhookUrl, {
+    // Discord only accepts buttons from a plain webhook with this option
+    const targetUrl = new URL(webhookUrl);
+
+    if (hasButtons) {
+      targetUrl.searchParams.set("with_components", "true");
+    }
+
+    const response = await fetch(targetUrl.toString(), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

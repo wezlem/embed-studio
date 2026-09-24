@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 type Field = {
   id: number;
   name: string;
@@ -39,6 +41,56 @@ type EditorProps = {
   onShowTimestampChange: (value: boolean) => void;
 };
 
+/* Tüm giriş kutuları aynı stili buradan alır */
+const inputClass =
+  "w-full rounded-md border border-line bg-field px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-accent";
+
+const textareaClass = `${inputClass} resize-none`;
+
+/* Bölüm: başlık + içerik */
+function Section({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className="border-b border-line px-5 py-5 last:border-b-0">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+          {title}
+        </h3>
+
+        {action}
+      </div>
+
+      {children}
+    </section>
+  );
+}
+
+/* Etiket + giriş kutusu (etikete tıklayınca kutu seçilir) */
+function Row({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-medium text-subtle">
+        {label}
+      </span>
+
+      {children}
+    </label>
+  );
+}
+
 export default function Editor({
   content,
   title,
@@ -68,76 +120,59 @@ export default function Editor({
   onShowTimestampChange,
 }: EditorProps) {
   return (
-    <div className="h-full overflow-y-auto rounded-xl bg-[#2b2d31] p-4">
-      <h2 className="mb-5 text-lg font-semibold">
-        📝 Editor
-      </h2>
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-panel">
+      <div className="border-b border-line px-5 py-3">
+        <h2 className="text-sm font-semibold text-ink">
+          Editor
+        </h2>
+      </div>
 
-      <div className="space-y-5">
-
-        {/* Message Content */}
-        <div>
-          <h3 className="mb-4 text-sm font-semibold text-white">
-            💬 Message Content
-          </h3>
-
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <Section title="Message">
           <textarea
             value={content}
             onChange={(e) =>
               onContentChange(e.target.value)
             }
-            placeholder="Write a normal Discord message..."
+            placeholder="Message content"
             rows={4}
-            className="w-full resize-none rounded-lg border border-[#3f4147] bg-[#1e1f22] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#5865F2]"
+            className={textareaClass}
           />
 
-          <p className="mt-2 text-xs text-gray-500">
-            Supports normal text, mentions, @everyone and @here.
+          <p className="mt-2 text-xs text-muted">
+            Supports text, mentions, @everyone and @here.
           </p>
-        </div>
+        </Section>
 
-        {/* Embed */}
-        <div className="border-t border-[#3f4147] pt-5">
-          <h3 className="mb-4 text-sm font-semibold text-white">
-            📦 Embed
-          </h3>
-
+        <Section title="Embed">
           <div className="space-y-4">
-            <div>
-              <label className="mb-2 block text-sm text-gray-300">
-                Title
-              </label>
-
+            <Row label="Title">
               <input
                 value={title}
                 onChange={(e) =>
                   onTitleChange(e.target.value)
                 }
-                placeholder="Enter title..."
-                className="w-full rounded-lg border border-[#3f4147] bg-[#1e1f22] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#5865F2]"
+                placeholder="Embed title"
+                className={inputClass}
               />
-            </div>
+            </Row>
 
-            <div>
-              <label className="mb-2 block text-sm text-gray-300">
-                Description
-              </label>
-
+            <Row label="Description">
               <textarea
                 value={description}
                 onChange={(e) =>
                   onDescriptionChange(e.target.value)
                 }
-                placeholder="Enter description..."
+                placeholder="Embed description"
                 rows={5}
-                className="w-full resize-none rounded-lg border border-[#3f4147] bg-[#1e1f22] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#5865F2]"
+                className={textareaClass}
               />
-            </div>
+            </Row>
 
             <div>
-              <label className="mb-2 block text-sm text-gray-300">
-                Embed Color
-              </label>
+              <span className="mb-1.5 block text-xs font-medium text-subtle">
+                Color
+              </span>
 
               <div className="flex items-center gap-3">
                 <input
@@ -146,88 +181,78 @@ export default function Editor({
                   onChange={(e) =>
                     onColorChange(e.target.value)
                   }
-                  className="h-11 w-14 cursor-pointer rounded-lg border border-[#3f4147] bg-[#1e1f22] p-1"
+                  aria-label="Embed color"
+                  className="h-9 w-12 cursor-pointer rounded-md border border-line bg-field p-1"
                 />
 
-                <span className="rounded-lg bg-[#1e1f22] px-3 py-2.5 font-mono text-sm text-gray-300">
+                <span className="rounded-md border border-line bg-field px-3 py-2 font-mono text-xs text-subtle">
                   {color.toUpperCase()}
                 </span>
               </div>
             </div>
           </div>
-        </div>
+        </Section>
 
-        {/* Author */}
-        <div className="border-t border-[#3f4147] pt-5">
-          <h3 className="mb-4 text-sm font-semibold text-white">
-            👤 Author
-          </h3>
-
+        <Section title="Author">
           <div className="space-y-4">
-            <input
-              value={author}
-              onChange={(e) =>
-                onAuthorChange(e.target.value)
-              }
-              placeholder="Author Name"
-              className="w-full rounded-lg border border-[#3f4147] bg-[#1e1f22] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#5865F2]"
-            />
+            <Row label="Name">
+              <input
+                value={author}
+                onChange={(e) =>
+                  onAuthorChange(e.target.value)
+                }
+                placeholder="Author name"
+                className={inputClass}
+              />
+            </Row>
 
-            <input
-              value={authorIcon}
-              onChange={(e) =>
-                onAuthorIconChange(e.target.value)
-              }
-              placeholder="Author Icon URL"
-              className="w-full rounded-lg border border-[#3f4147] bg-[#1e1f22] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#5865F2]"
-            />
+            <Row label="Icon URL">
+              <input
+                value={authorIcon}
+                onChange={(e) =>
+                  onAuthorIconChange(e.target.value)
+                }
+                placeholder="https://"
+                className={inputClass}
+              />
+            </Row>
           </div>
-        </div>
+        </Section>
 
-        {/* Fields */}
-        <div className="border-t border-[#3f4147] pt-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">
-              📋 Fields
-            </h3>
-
+        <Section
+          title="Fields"
+          action={
             <button
               onClick={onAddField}
-              className="rounded-lg bg-[#5865F2] px-3 py-1.5 text-xs font-semibold transition hover:bg-[#4752C4]"
+              className="rounded-md border border-line-strong px-2.5 py-1 text-xs font-medium text-subtle transition-colors hover:bg-line hover:text-ink"
             >
-              + Add Field
+              Add field
             </button>
-          </div>
-
+          }
+        >
           {fields.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-[#4f545c] px-4 py-6 text-center text-sm text-gray-500">
-              No fields yet.
-              <br />
-              Click{" "}
-              <span className="text-gray-300">
-                + Add Field
-              </span>{" "}
-              to create one.
-            </div>
+            <p className="rounded-md border border-dashed border-line-strong px-4 py-5 text-center text-xs text-muted">
+              No fields added yet.
+            </p>
           ) : (
             <div className="space-y-3">
               {fields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="rounded-lg border border-[#3f4147] bg-[#1e1f22] p-3"
+                  className="rounded-md border border-line p-3"
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-gray-400">
-                      Field #{index + 1}
+                    <span className="text-xs font-medium text-subtle">
+                      Field {index + 1}
                     </span>
 
                     <button
                       onClick={() =>
                         onRemoveField(field.id)
                       }
-                      className="rounded px-2 py-1 text-xs text-red-400 transition hover:bg-red-400/10"
+                      className="text-xs text-muted transition-colors hover:text-danger"
                     >
-                      🗑️ Remove
+                      Remove
                     </button>
                   </div>
 
@@ -241,8 +266,9 @@ export default function Editor({
                           e.target.value
                         )
                       }
-                      placeholder="Field Name"
-                      className="w-full rounded-lg border border-[#3f4147] bg-[#2b2d31] px-3 py-2 text-sm text-white outline-none transition focus:border-[#5865F2]"
+                      placeholder="Name"
+                      aria-label={`Field ${index + 1} name`}
+                      className={inputClass}
                     />
 
                     <textarea
@@ -254,12 +280,13 @@ export default function Editor({
                           e.target.value
                         )
                       }
-                      placeholder="Field Value"
+                      placeholder="Value"
+                      aria-label={`Field ${index + 1} value`}
                       rows={3}
-                      className="w-full resize-none rounded-lg border border-[#3f4147] bg-[#2b2d31] px-3 py-2 text-sm text-white outline-none transition focus:border-[#5865F2]"
+                      className={textareaClass}
                     />
 
-                    <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-400">
+                    <label className="flex cursor-pointer items-center gap-2 text-xs text-subtle">
                       <input
                         type="checkbox"
                         checked={field.inline}
@@ -270,83 +297,69 @@ export default function Editor({
                             e.target.checked
                           )
                         }
-                        className="h-4 w-4 accent-[#5865F2]"
+                        className="h-4 w-4 accent-accent"
                       />
 
-                      Inline field
+                      Inline
                     </label>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </Section>
 
-        {/* Images */}
-        <div className="border-t border-[#3f4147] pt-5">
-          <h3 className="mb-4 text-sm font-semibold text-white">
-            🖼️ Images
-          </h3>
-
+        <Section title="Images">
           <div className="space-y-4">
-            <input
-              value={thumbnail}
-              onChange={(e) =>
-                onThumbnailChange(e.target.value)
-              }
-              placeholder="Thumbnail URL"
-              className="w-full rounded-lg border border-[#3f4147] bg-[#1e1f22] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#5865F2]"
-            />
+            <Row label="Thumbnail URL">
+              <input
+                value={thumbnail}
+                onChange={(e) =>
+                  onThumbnailChange(e.target.value)
+                }
+                placeholder="https://"
+                className={inputClass}
+              />
+            </Row>
 
-            <input
-              value={image}
-              onChange={(e) =>
-                onImageChange(e.target.value)
-              }
-              placeholder="Large Image URL"
-              className="w-full rounded-lg border border-[#3f4147] bg-[#1e1f22] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#5865F2]"
-            />
+            <Row label="Image URL">
+              <input
+                value={image}
+                onChange={(e) =>
+                  onImageChange(e.target.value)
+                }
+                placeholder="https://"
+                className={inputClass}
+              />
+            </Row>
           </div>
-        </div>
+        </Section>
 
-        {/* Footer */}
-        <div className="border-t border-[#3f4147] pt-5">
-          <h3 className="mb-4 text-sm font-semibold text-white">
-            📝 Footer
-          </h3>
-
+        <Section title="Footer">
           <div className="space-y-4">
-            <div>
-              <label className="mb-2 block text-sm text-gray-300">
-                Footer Text
-              </label>
-
+            <Row label="Text">
               <input
                 value={footerText}
                 onChange={(e) =>
                   onFooterTextChange(e.target.value)
                 }
-                placeholder="e.g. Embed Studio"
-                className="w-full rounded-lg border border-[#3f4147] bg-[#1e1f22] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#5865F2]"
+                placeholder="Footer text"
+                className={inputClass}
               />
-            </div>
+            </Row>
 
-            <div>
-              <label className="mb-2 block text-sm text-gray-300">
-                Footer Icon URL
-              </label>
-
+            <Row label="Icon URL">
               <input
                 value={footerIcon}
                 onChange={(e) =>
                   onFooterIconChange(e.target.value)
                 }
-                placeholder="https://example.com/icon.png"
-                className="w-full rounded-lg border border-[#3f4147] bg-[#1e1f22] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#5865F2]"
+                placeholder="https://"
+                className={inputClass}
               />
-            </div>
+            </Row>
 
-            <label className="flex cursor-pointer items-center gap-3 text-sm text-gray-300">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-subtle">
               <input
                 type="checkbox"
                 checked={showTimestamp}
@@ -355,14 +368,13 @@ export default function Editor({
                     e.target.checked
                   )
                 }
-                className="h-4 w-4 accent-[#5865F2]"
+                className="h-4 w-4 accent-accent"
               />
 
-              Show Timestamp
+              Show timestamp
             </label>
           </div>
-        </div>
-
+        </Section>
       </div>
     </div>
   );

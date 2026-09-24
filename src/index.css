@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+@theme {
+  --color-canvas: #1e1f22;
+  --color-panel: #2b2d31;
+  --color-chat: #313338;
+  --color-field: #1e1f22;
+  --color-line: #3f4147;
+  --color-line-strong: #4f545c;
+  --color-accent: #5865f2;
+  --color-accent-hover: #4752c4;
+  --color-ink: #f2f3f5;
+  --color-subtle: #b5bac1;
+  --color-muted: #80848e;
+  --color-danger: #f23f43;
+
+  --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
 html,
 body,
 #root {
@@ -9,13 +27,19 @@ body,
 
 body {
   margin: 0;
-  background: #313338;
-  color: white;
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  color-scheme: dark;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
