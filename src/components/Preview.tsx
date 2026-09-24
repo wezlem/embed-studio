@@ -30,12 +30,10 @@ type PreviewProps = {
 };
 
 const DEFAULT_AVATAR_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">' +
-  '<rect width="128" height="128" fill="#5865F2"/>' +
-  '<path d="M28 44c10-8 22-11 36-11s26 3 36 11c8 12 12 28 12 46-9 7-18 11-28 13l-6-10c-9 2-19 2-28 0l-6 10c-10-2-19-6-28-13 0-18 4-34 12-46z" fill="#fff"/>' +
-  '<ellipse cx="47" cy="72" rx="8" ry="10" fill="#5865F2"/>' +
-  '<ellipse cx="81" cy="72" rx="8" ry="10" fill="#5865F2"/>' +
-  "</svg>";
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+    <circle cx="64" cy="64" r="64" fill="#5865F2"/>
+    <path fill="#FFFFFF" d="M91.1 36.3a55.8 55.8 0 0 0-14-4.4l-.7 1.4a52.8 52.8 0 0 0-24.8 0l-.7-1.4a55.8 55.8 0 0 0-14 4.4C27.2 50.8 24.6 65 25.9 79c6.5 4.8 12.8 7.7 19 9.6l4.5-6a34.6 34.6 0 0 1-6-3l1.5-1.2c11.6 5.4 24.2 5.4 35.7 0l1.5 1.2a34.6 34.6 0 0 1-6 3l4.5 6c6.2-1.9 12.5-4.8 19-9.6 1.6-16.2-2.7-30.3-11.5-42.7ZM51.5 69.7c-3.2 0-5.8-3-5.8-6.6s2.6-6.6 5.8-6.6 5.8 3 5.8 6.6-2.6 6.6-5.8 6.6Zm25 0c-3.2 0-5.8-3-5.8-6.6s2.6-6.6 5.8-6.6 5.8 3 5.8 6.6-2.6 6.6-5.8 6.6Z"/>
+  </svg>`;
 
 const DEFAULT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent(
   DEFAULT_AVATAR_SVG
@@ -118,18 +116,12 @@ export default function Preview({
 
       <div className="min-h-0 flex-1 overflow-y-auto p-5">
         <div className="flex gap-3">
-          {botAvatar && !botAvatarHasError ? (
-                                          <img
+          <img
             src={botAvatar && !botAvatarHasError ? botAvatar : DEFAULT_AVATAR}
             alt="Bot avatar"
             className="h-10 w-10 shrink-0 rounded-full object-cover"
             onError={() => setBotAvatarError(botAvatar)}
           />
-          ) : (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-white">
-              {(botName || "E").charAt(0).toUpperCase()}
-            </div>
-          )}
 
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center gap-2">
