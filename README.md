@@ -23,14 +23,15 @@
 
 - Embed'leri görsel bir editör üzerinden oluşturmanı sağlıyor
 - Yaptığın değişiklikleri gerçek zamanlı olarak Discord görünümünde gösteriyor
+- Markdown etiketlerini (#, *, _, ~, code block vb.) ve Discord mention etiketlerini destekliyor
 - Başlık, açıklama, renk, author, thumbnail, image ve footer gibi alanları düzenleyebiliyorsun
 - Birden fazla field ekleyebilir ve bunları `inline` olarak ayarlayabiliyorsun
+- Discord Link Butonları (URL Components) ekleyebiliyorsun
 - Hazırladığın embed'i JSON olarak görüntüleyip kopyalayabiliyorsun
-- Hazırladığın embed için doğrudan `discord.js` kodu oluşturabiliyor
-- Discord webhook URL'sini kontrol edebiliyor
-- Oluşturduğun mesajı doğrudan Discord webhook'una gönderebiliyorsun
+- Hazırladığın embed ve butonlar için doğrudan `discord.js` kodu oluşturabiliyor
+- Discord webhook URL'sini kontrol edebiliyor ve doğrudan Discord'a mesaj gönderebiliyor
 - Webhook kullanıcı adı ve avatarını özelleştirebiliyorsun
-- Normal Discord mesaj içeriğini embed ile birlikte kullanabiliyorsun
+- Production ortamında tek port üzerinden (Express + Vite build) çalışabiliyor
 
 ### Kullanılan Teknolojiler
 
@@ -41,7 +42,7 @@
 | Vite | Geliştirme sunucusu ve build |
 | Tailwind CSS | Arayüz tasarımı |
 | Node.js | Sunucu tarafı işlemler |
-| Express | Webhook sunucusu |
+| Express | Webhook sunucusu ve static hosting |
 | CORS | İstek izinleri |
 | tsx | TypeScript sunucusunu çalıştırmak |
 
@@ -51,24 +52,27 @@
 embed-studio/
 │
 ├── public/
-│   └── ...                  # Statik dosyalar
+│   └── logo.png             # Statik dosyalar ve favicon
 │
 ├── server/
-│   └── index.ts             # Webhook sunucusu
+│   └── index.ts             # Webhook ve sunucu yapısı
 │
 ├── src/
+│   ├── assets/              # Logo ve görsel dosyalar
 │   ├── components/
+│   │   ├── ButtonPanel.tsx  # Discord butonları yönetim paneli
 │   │   ├── Editor.tsx       # Embed düzenleme alanı
-│   │   └── Preview.tsx      # Discord embed önizlemesi
+│   │   ├── Preview.tsx      # Discord embed önizlemesi
+│   │   ├── TagPanel.tsx     # Mention ve etiket paneli
+│   │   └── renderMarkdown.tsx # Markdown formatlayıcı
 │   │
 │   ├── App.tsx              # Uygulamanın ana yapısı
-│   └── ...
+│   └── main.tsx
 │
 ├── .gitignore
 ├── eslint.config.js
 ├── index.html
 ├── package.json
-├── package-lock.json
 ├── tsconfig.app.json
 ├── tsconfig.json
 ├── tsconfig.node.json
@@ -83,29 +87,28 @@ cd embed-studio
 npm install
 ```
 
-Frontend'i başlatmak için:
+Geliştirme ortamında çalıştırmak için:
 
 ```bash
+# Terminal 1 - Backend
+npm run start
+
+# Terminal 2 - Frontend
 npm run dev
 ```
 
-Webhook sunucusunu başlatmak için:
-
-```bash
-npm run server
-```
-
-Production build oluşturmak için:
+Production ortamında tek porttan çalıştırmak için:
 
 ```bash
 npm run build
+npm start
 ```
 
 ### Komutlar
 
 `npm run dev` → Vite geliştirme sunucusunu başlatır
 
-`npm run server` → Webhook sunucusunu başlatır
+`npm run start` → Express sunucusunu ve derlenmiş arayüzü başlatır
 
 `npm run build` → Production build oluşturur
 
@@ -120,11 +123,15 @@ STATUS
 ├── Frontend      ✓
 ├── Editor        ✓
 ├── Live Preview  ✓
+├── Markdown      ✓
+├── Link Buttons  ✓
 ├── JSON Export   ✓
 ├── discord.js    ✓
 ├── Webhook       ✓
 └── Development   ── Active
 ```
+
+---
 
 ## English
 
@@ -132,14 +139,15 @@ STATUS
 
 - Allows you to create Discord embeds through a visual editor
 - Shows your changes in a real-time Discord-style preview
+- Supports full Discord markdown formatting and mention tags
 - Supports titles, descriptions, colors, authors, thumbnails, images and footers
 - Allows adding multiple fields with `inline` support
+- Supports Discord Link Buttons (URL Components)
 - Generates and copies the complete JSON payload
-- Generates ready-to-use `discord.js` code
-- Validates Discord webhook URLs
-- Sends the created message directly to a Discord webhook
+- Generates ready-to-use `discord.js` code with buttons included
+- Validates Discord webhook URLs and sends messages directly
 - Allows customizing the webhook username and avatar
-- Supports normal Discord message content together with embeds
+- Runs on a single unified port in production (Express + Vite build)
 
 ### Technologies
 
@@ -150,7 +158,7 @@ STATUS
 | Vite | Development server and build |
 | Tailwind CSS | Interface styling |
 | Node.js | Server-side runtime |
-| Express | Webhook server |
+| Express | Webhook server and static hosting |
 | CORS | Request handling |
 | tsx | Running the TypeScript server |
 
@@ -160,24 +168,27 @@ STATUS
 embed-studio/
 │
 ├── public/
-│   └── ...                  # Static files
+│   └── logo.png             # Static files and favicon
 │
 ├── server/
-│   └── index.ts             # Webhook server
+│   └── index.ts             # Webhook and server backend
 │
 ├── src/
+│   ├── assets/              # Logos and assets
 │   ├── components/
+│   │   ├── ButtonPanel.tsx  # Discord link buttons editor
 │   │   ├── Editor.tsx       # Embed editor
-│   │   └── Preview.tsx      # Discord embed preview
+│   │   ├── Preview.tsx      # Discord embed preview
+│   │   ├── TagPanel.tsx     # Mention tags panel
+│   │   └── renderMarkdown.tsx # Markdown renderer
 │   │
 │   ├── App.tsx              # Main application
-│   └── ...
+│   └── main.tsx
 │
 ├── .gitignore
 ├── eslint.config.js
 ├── index.html
 ├── package.json
-├── package-lock.json
 ├── tsconfig.app.json
 ├── tsconfig.json
 ├── tsconfig.node.json
@@ -192,29 +203,28 @@ cd embed-studio
 npm install
 ```
 
-Start the frontend:
+Start in development mode:
 
 ```bash
+# Terminal 1 - Backend
+npm run start
+
+# Terminal 2 - Frontend
 npm run dev
 ```
 
-Start the Webhook Server:
-
-```bash
-npm run server
-```
-
-Create a production build:
+Run in production mode (single port):
 
 ```bash
 npm run build
+npm start
 ```
 
 ### Scripts
 
 `npm run dev` → Start Vite development server
 
-`npm run server` → Start webhook server
+`npm run start` → Start Express server & serve static app
 
 `npm run build` → Create production build
 
@@ -229,6 +239,8 @@ STATUS
 ├── Frontend      ✓
 ├── Editor        ✓
 ├── Live Preview  ✓
+├── Markdown      ✓
+├── Link Buttons  ✓
 ├── JSON Export   ✓
 ├── discord.js    ✓
 ├── Webhook       ✓

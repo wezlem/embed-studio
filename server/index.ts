@@ -148,7 +148,7 @@ app.post("/api/webhook", async (req, res) => {
 });
 
 // Fallback for React Router / SPA
-app.get("*", (req, res, next) => {
+app.use((req, res, next) => {
   if (req.path.startsWith("/api")) {
     return next();
   }
