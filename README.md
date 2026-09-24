@@ -11,10 +11,6 @@
 
 </p>
 
-<p align="center">
-  A modern Discord Embed Builder for creating, customizing and previewing embeds.
-</p>
-
 ---
 
 ## Türkçe
@@ -246,14 +242,3 @@ STATUS
 ├── Webhook       ✓
 └── Development   ── Active
 ```
-
-<p align="center">─────────────────────────────────────────</p>
-
-<p align="center">
-  <a href="https://github.com/wezlem/embed-studio">Repository</a> ·
-  <a href="https://github.com/wezlem/embed-studio/issues">Issues</a>
-</p>
-
-<p align="center">
-  <sub>Built by <a href="https://github.com/wezlem">wezlem</a></sub>
-</p>
